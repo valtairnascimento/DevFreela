@@ -1,4 +1,8 @@
-﻿namespace DevFreela.API.Models
+﻿
+
+using DevFreela.Core.Entities;
+
+namespace DevFreela.Application.Models
 {
     public class UserViewModel
     {
@@ -14,5 +18,11 @@
         public string Email { get; private set; }
         public DateTime BirthDate { get; private set; }
         public List<string> Skills  { get; private set; }
+
+        public static UserViewModel FromEntity(User user)
+        {
+            var skills = user.Skills.Select(u => u.Skill.Description).ToList();
+            return new UserViewModel(user.FullName, user.Email, user.BirthDate, skills);
+        }
     }
 }
