@@ -37,7 +37,6 @@ namespace DevFreela.API.Controllers
         }  
 
 
-        //POST api/users
         [HttpPost]
         public IActionResult Post(CreateUserInputModel model)
         {

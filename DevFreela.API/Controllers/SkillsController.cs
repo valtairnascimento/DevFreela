@@ -15,7 +15,6 @@ namespace DevFreela.API.Controllers
         {
             _context = context; 
         }
-        //GET api/skills
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -23,7 +22,6 @@ namespace DevFreela.API.Controllers
 
             return Ok(skills);
         }
-        //Post api/skills
         [HttpPost]
         public IActionResult Post(CreateSkillInputModel model)
         {
