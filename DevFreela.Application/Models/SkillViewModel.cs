@@ -14,5 +14,6 @@ namespace DevFreela.Application.Models
         public string Description { get;  private set; }
 
        
+        public static SkillViewModel FromEntity(Skill skill) => new(skill.Id, skill.Description);
     }
 }

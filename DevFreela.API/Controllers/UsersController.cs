@@ -1,49 +1,48 @@
-﻿using DevFreela.Application.Models;
+﻿using DevFreela.Application.Commands.UserCommands.InsertUser;
+using DevFreela.Application.Commands.UserCommands.LoginUser;
+using DevFreela.Application.Models;
+using DevFreela.Application.Queries.UserQueries;
 using DevFreela.Core.Entities;
 using DevFreela.Infrastructure.Persistence;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace DevFreela.API.Controllers
 {
     [Route("api/users")]
     [ApiController]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly DevFreelaDbContext _context;
-        public UsersController(DevFreelaDbContext context)
+        private readonly IMediator _mediator;   
+        public UsersController(DevFreelaDbContext context, IMediator mediator)
         {
-
-
             _context = context; 
+            _mediator = mediator;
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id) 
+        public async Task<IActionResult> GetById(int id) 
         {
-            var user = _context.Users   
-                .Include(u => u.Skills)
-                    .ThenInclude(u => u.Skill)       
-               .SingleOrDefault(u => u.Id == id);
+            var result = await _mediator.Send(new GetUserByIdQuery(id));
 
-            if(user is null)
+            if(!result.IsSuccess)
             {
-                return NotFound();
+                return BadRequest(result.Message);
             }
 
-            var model = UserViewModel.FromEntity(user);
                 
-            return Ok(model);
+            return Ok(result);
         }  
 
 
         [HttpPost]
-        public IActionResult Post(CreateUserInputModel model)
+        [AllowAnonymous]
+        public async Task<IActionResult> Post(InsertUserCommand command)
         {
-            var user = new User(model.FullName, model.Email, model.BirthDate);
-
-            _context.Users.Add(user);
-            _context.SaveChanges();
+            var result = await _mediator.Send(command);
 
             return NoContent();
         }
@@ -59,14 +58,20 @@ namespace DevFreela.API.Controllers
             return NoContent(); 
         }
 
-        [HttpPut("{id}/profile-picture")]
-        public IActionResult PostProfilePicture(int id, IFormFile file)
+        [HttpPut("Login")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
         {
-            var description = $"File: {file.FileName}, Size: {file.Length}";
+            var loginUserViewModel = await _mediator.Send(command);
+            
+            if (loginUserViewModel is null)
+            {
+                return BadRequest();    
+            }
 
-            //Logica para processar a imagem
-
-            return Ok(description);
+            return Ok(loginUserViewModel);
         }
+
+     
     }
 }
